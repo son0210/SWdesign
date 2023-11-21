@@ -22,6 +22,7 @@ public class CardMatchingMedium extends JFrame {
     private static final String initialImagePath = "cardlogo.jpg";
     private static final int initialImageWidth = 129;
     private static final int initialImageHeight = 172;
+    private boolean isComparing = false;
 
     /**
      * CardMatchingEasy 클래스의 생성자입니다.
@@ -32,6 +33,7 @@ public class CardMatchingMedium extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setResizable(false);
+        cardScore = new Score();
         topPanel = new JPanel(new FlowLayout());
         topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         scoreLabel = new JLabel("Score: 0");
@@ -145,61 +147,51 @@ public class CardMatchingMedium extends JFrame {
      * MouseAdapter 인터페이스를 구현합니다.
      */
     private class CardClickListener extends MouseAdapter {
-        /**
-         * 카드에 대한 마우스 클릭 이벤트를 처리합니다.
-         * 클릭한 카드가 뒷면인 경우 카드의 앞면을 보여줍니다.
-         * 두 개의 카드가 선택된 경우 일치 여부를 확인합니다.
-         *
-         * @param e 마우스 이벤트입니다.
-         */
-    	@Override
+        @Override
         public void mouseClicked(MouseEvent e) {
             Card clickedCard = (Card) e.getSource();
 
-            if (!clickedCard.isFaceUp) {
-                if (selectedCard == null) {
-                    clickedCard.showCard();
-                    selectedCard = clickedCard;
-                } else {
-                    clickedCard.showCard();
-                    if (selectedCard.icon.equals(clickedCard.icon)) {
-                    	cardScore.increaseScore(2); // 점수 업데이트
-                        scoreLabel.setText("Score: " + cardScore.getScore()); // 레이블 업데이트
-                        pairsFound++;
-                        if (pairsFound == 15) {
-                            JOptionPane.showMessageDialog(null, "You win!");
+            if (isComparing || clickedCard.isFaceUp()) {
+                return; // 비교 중이거나 이미 앞면이면 클릭을 무시
+            }
+
+            clickedCard.showCard();
+
+            if (selectedCard == null) {
+                selectedCard = clickedCard;
+            } else {
+                isComparing = true;
+
+                Timer cardTimer = new Timer(40, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (selectedCard.icon.equals(clickedCard.icon)) {
+                            cardScore.increaseScore(2);
+                            scoreLabel.setText("Score: " + cardScore.getScore());
+                            pairsFound++;
+                            if (pairsFound == 15) {
+                                JOptionPane.showMessageDialog(null, "You win!");
+                            }
+                            selectedCard.setEnabled(false);
+                            clickedCard.setEnabled(false);
+                        } else {
+                            selectedCard.isFaceUp = false;
+                            selectedCard.setIcon(scaleIcon(new ImageIcon(initialImagePath), selectedCard.getPreferredSize()));
+
+                            clickedCard.isFaceUp = false;
+                            clickedCard.setIcon(scaleIcon(new ImageIcon(initialImagePath), clickedCard.getPreferredSize()));
                         }
-                        selectedCard.setEnabled(false);
-                        clickedCard.setEnabled(false);
+
                         selectedCard = null;
-                    } else {
-                    	Timer cardTimer = new Timer(10, new ActionListener() {
-                    		/**
-                    		 * Timer 이벤트에 대한 동작을 처리하는 ActionListener 구현체입니다.
-                    		 * 선택된 카드가 존재하는 경우 해당 카드를 뒷면으로 뒤집고, 이미지를 초기 크기로 조절합니다.
-                    		 * 선택된 카드가 없는 경우 아무 동작도 수행하지 않습니다.
-                    		 *
-                    		 * @param e Timer 이벤트입니다.
-                    		 */
-                    		@Override
-                    	    public void actionPerformed(ActionEvent e) {
-                    	        if (selectedCard != null) {
-                    	            selectedCard.isFaceUp = false;
-                    	            selectedCard.setIcon(scaleIcon(new ImageIcon(initialImagePath), selectedCard.getPreferredSize()));
-                    	        }
-                    	        if (clickedCard != null) {
-                    	            clickedCard.isFaceUp = false;
-                    	            clickedCard.setIcon(scaleIcon(new ImageIcon(initialImagePath), clickedCard.getPreferredSize()));
-                    	        }
-                    	        selectedCard = null;
-                    	    }
-                    	});
-                        cardTimer.setRepeats(false);
-                        cardTimer.start();
+                        isComparing = false;
                     }
-                }
+                });
+
+                cardTimer.setRepeats(false);
+                cardTimer.start();
             }
         }
+
     	
     	/**
     	 * 이미지 아이콘을 지정된 크기로 조절하는 유틸리티 메서드입니다.

@@ -27,6 +27,6 @@ public class Score {
      * @param points 증가시킬 점수
      */
     public void increaseScore(int points) {
-        cardScore += points;
+        this.cardScore += points;
     }
 }

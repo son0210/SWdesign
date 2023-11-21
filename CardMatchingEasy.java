@@ -1,6 +1,9 @@
 package Ingame;
 
 import javax.swing.*;
+
+import Ingame.CardMatchingHard.Card;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -14,7 +17,7 @@ import java.util.List;
 public class CardMatchingEasy extends JFrame {
     private JPanel cardPanel;
     private JPanel topPanel;  
-    private JLabel scoreLabel;  
+    private JLabel scoreLabel;
     private List<Card> cards;
     private Card selectedCard = null;
     private int pairsFound = 0;
@@ -22,6 +25,7 @@ public class CardMatchingEasy extends JFrame {
     private static final String initialImagePath = "cardlogo.jpg";
     private static final int initialImageWidth = 162;
     private static final int initialImageHeight = 216;
+    private boolean isComparing = false;
 
     /**
      * CardMatchingEasy 클래스의 생성자입니다.
@@ -90,6 +94,7 @@ public class CardMatchingEasy extends JFrame {
         }
     }
 
+    
     /**
      * Card 클래스는 게임에서 사용되는 카드를 나타냅니다.
      * 각 카드에는 연관된 이미지 아이콘이 있으며 앞면이나 뒷면으로 나타낼 수 있습니다.
@@ -145,67 +150,50 @@ public class CardMatchingEasy extends JFrame {
      * MouseAdapter 인터페이스를 구현합니다.
      */
     private class CardClickListener extends MouseAdapter {
-        /**
-         * 카드에 대한 마우스 클릭 이벤트를 처리합니다.
-         * 클릭한 카드가 뒷면인 경우 카드의 앞면을 보여줍니다.
-         * 두 개의 카드가 선택된 경우 일치 여부를 확인합니다.
-         *
-         * @param e 마우스 이벤트입니다.
-         */
-    	@Override
+        @Override
         public void mouseClicked(MouseEvent e) {
             Card clickedCard = (Card) e.getSource();
 
-            if (!clickedCard.isFaceUp) {
-                if (selectedCard == null) {
-                    clickedCard.showCard();
-                    selectedCard = clickedCard;
-                } else {
-                    clickedCard.showCard();
-                    if (selectedCard.icon.equals(clickedCard.icon)) {
-                    	cardScore.increaseScore(2); // 점수 업데이트
-                        scoreLabel.setText("Score: " + cardScore.getScore()); // 레이블 업데이트
-                        pairsFound++;
-                        if (pairsFound == 8) {
-                            JOptionPane.showMessageDialog(null, "You win!");
+            if (isComparing || clickedCard.isFaceUp()) {
+                return; // 비교 중이거나 이미 앞면이면 클릭을 무시
+            }
+
+            clickedCard.showCard();
+
+            if (selectedCard == null) {
+                selectedCard = clickedCard;
+            } else {
+                isComparing = true;
+
+                Timer cardTimer = new Timer(50, new ActionListener() { 
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (selectedCard.icon.equals(clickedCard.icon)) {
+                            cardScore.increaseScore(2);
+                            scoreLabel.setText("Score: " + cardScore.getScore());
+                            pairsFound++;
+                            if (pairsFound == 8) {
+                                JOptionPane.showMessageDialog(null, "You win!");
+                            }
+                            selectedCard.setEnabled(false);
+                            clickedCard.setEnabled(false);
+                        } else {
+                            selectedCard.isFaceUp = false;
+                            selectedCard.setIcon(scaleIcon(new ImageIcon(initialImagePath), selectedCard.getPreferredSize()));
+
+                            clickedCard.isFaceUp = false;
+                            clickedCard.setIcon(scaleIcon(new ImageIcon(initialImagePath), clickedCard.getPreferredSize()));
                         }
-                        selectedCard.setEnabled(false);
-                        clickedCard.setEnabled(false);
+
                         selectedCard = null;
-                    } else {
-                    	Timer cardTimer = new Timer(10, new ActionListener() {
-                    		/**
-                    		 * Timer 이벤트에 대한 동작을 처리하는 ActionListener 구현체입니다.
-                    		 * 선택된 카드가 존재하는 경우 해당 카드를 뒷면으로 뒤집고, 이미지를 초기 크기로 조절합니다.
-                    		 * 선택된 카드가 없는 경우 아무 동작도 수행하지 않습니다.
-                    		 *
-                    		 * @param e Timer 이벤트입니다.
-                    		 */
-                    		@Override
-                    	    public void actionPerformed(ActionEvent e) {
-                    	        if (selectedCard != null) {
-                    	            selectedCard.isFaceUp = false;
-                    	            selectedCard.setIcon(scaleIcon(new ImageIcon(initialImagePath), selectedCard.getPreferredSize()));
-                    	        }
-                    	        if (clickedCard != null) {
-                    	            clickedCard.isFaceUp = false;
-                    	            clickedCard.setIcon(scaleIcon(new ImageIcon(initialImagePath), clickedCard.getPreferredSize()));
-                    	        }
-                    	        selectedCard = null;
-                    	    }
-                    	});
-                        cardTimer.setRepeats(false);
-                        cardTimer.start();
+                        isComparing = false;
                     }
-                }
+                });
+
+                cardTimer.setRepeats(false);
+                cardTimer.start();
             }
         }
-    	
-// 카드 클릭 시 지연 문제 해결방법
-// 문제를 해결하기 위해 다음과 같은 몇 가지 단계를 따를 수 있습니다:
-// 1. Timer 객체가 사용되는 부분에서 다른 이벤트를 방해하지 않도록 Timer 이벤트 핸들러에서의 작업을 최소화합니다.
-// 2. repaint() 또는 revalidate()를 사용하여 UI를 갱신합니다.
-// 3. 긴 작업을 스윙 이벤트 디스패치 스레드에서 실행하지 않도록 합니다.
     	
     	/**
     	 * 이미지 아이콘을 지정된 크기로 조절하는 유틸리티 메서드입니다.
