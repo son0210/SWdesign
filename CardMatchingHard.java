@@ -8,44 +8,45 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 난이도 하의 카드 매칭 게임을 나타냅니다.
+ * 난이도 상의 카드 매칭 게임을 나타냅니다.
  * JFrame을 확장하며 게임의 그래픽 사용자 인터페이스(GUI)를 포함합니다.
  */
-public class CardMatchingEasy extends JFrame {
+public class CardMatchingHard extends JFrame {
     private JPanel cardPanel;
     private JPanel topPanel;  
+    private JLabel timerLabel;  
     private JLabel scoreLabel;  
     private List<Card> cards;
     private Card selectedCard = null;
     private int pairsFound = 0;
     private Score cardScore;
     private static final String initialImagePath = "cardlogo.jpg";
-    private static final int initialImageWidth = 162;
-    private static final int initialImageHeight = 216;
+    private static final int initialImageWidth = 102;
+    private static final int initialImageHeight = 136;
 
     /**
      * CardMatchingEasy 클래스의 생성자입니다.
      * 게임 창을 초기화하고 사용자 인터페이스를 설정합니다.
      */
-    public CardMatchingEasy() {
+    public CardMatchingHard() {
         setTitle("엎어라 뒤집어라");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setResizable(false); // 전체화면으로 고정
-        cardScore = new Score();
+        setResizable(false);
         topPanel = new JPanel(new FlowLayout());
         topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         scoreLabel = new JLabel("Score: 0");
         topPanel.add(scoreLabel);
         topPanel.setBackground(new Color(125, 159, 104));
         add(topPanel, BorderLayout.NORTH);
-        
-        cardPanel = new JPanel(new GridLayout(4, 4, 10, 10));
+
+
+        cardPanel = new JPanel(new GridLayout(6, 8, 10, 10));
         cardPanel.setBackground(new Color(237, 227, 206));
         cards = new ArrayList<>();
 
-        for (int i = 0; i < 8; i++) {
-            String imagePath = "easy/easy" + (i + 1) + ".jpg";
+        for (int i = 0; i < 24; i++) {
+            String imagePath = "hard/hard" + (i + 1) + ".jpg";
             ImageIcon icon = new ImageIcon(imagePath);
 
             for (int j = 0; j < 2; j++) {
@@ -166,14 +167,14 @@ public class CardMatchingEasy extends JFrame {
                     	cardScore.increaseScore(2); // 점수 업데이트
                         scoreLabel.setText("Score: " + cardScore.getScore()); // 레이블 업데이트
                         pairsFound++;
-                        if (pairsFound == 8) {
+                        if (pairsFound == 24) {
                             JOptionPane.showMessageDialog(null, "You win!");
                         }
                         selectedCard.setEnabled(false);
                         clickedCard.setEnabled(false);
                         selectedCard = null;
                     } else {
-                    	Timer cardTimer = new Timer(10, new ActionListener() {
+                    	Timer cardTimer = new Timer(50, new ActionListener() {
                     		/**
                     		 * Timer 이벤트에 대한 동작을 처리하는 ActionListener 구현체입니다.
                     		 * 선택된 카드가 존재하는 경우 해당 카드를 뒷면으로 뒤집고, 이미지를 초기 크기로 조절합니다.
@@ -194,18 +195,12 @@ public class CardMatchingEasy extends JFrame {
                     	        selectedCard = null;
                     	    }
                     	});
-                        cardTimer.setRepeats(false);
+                    	cardTimer.setRepeats(false);
                         cardTimer.start();
                     }
                 }
             }
         }
-    	
-// 카드 클릭 시 지연 문제 해결방법
-// 문제를 해결하기 위해 다음과 같은 몇 가지 단계를 따를 수 있습니다:
-// 1. Timer 객체가 사용되는 부분에서 다른 이벤트를 방해하지 않도록 Timer 이벤트 핸들러에서의 작업을 최소화합니다.
-// 2. repaint() 또는 revalidate()를 사용하여 UI를 갱신합니다.
-// 3. 긴 작업을 스윙 이벤트 디스패치 스레드에서 실행하지 않도록 합니다.
     	
     	/**
     	 * 이미지 아이콘을 지정된 크기로 조절하는 유틸리티 메서드입니다.
@@ -227,6 +222,6 @@ public class CardMatchingEasy extends JFrame {
      * @param args 명령행 인수 (사용되지 않음).
      */
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new CardMatchingEasy());
+        SwingUtilities.invokeLater(() -> new CardMatchingHard());
     }
 }
