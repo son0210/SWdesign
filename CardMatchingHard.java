@@ -19,7 +19,7 @@ public class CardMatchingHard extends JFrame {
     private Card selectedCard = null;
     private int pairsFound = 0;
     private Score cardScore;
-    private static final String initialImagePath = "cardlogo.jpg";
+    private static final String initialImagePath = "src/image/cardlogo.jpg";
     private static final int initialImageWidth = 102;
     private static final int initialImageHeight = 136;
     private boolean isComparing = false;
@@ -47,7 +47,7 @@ public class CardMatchingHard extends JFrame {
         cards = new ArrayList<>();
 
         for (int i = 0; i < 24; i++) {
-            String imagePath = "hard/hard" + (i + 1) + ".jpg";
+            String imagePath = "src/image/hard/hard" + (i + 1) + ".jpg";
             ImageIcon icon = new ImageIcon(imagePath);
 
             for (int j = 0; j < 2; j++) {
