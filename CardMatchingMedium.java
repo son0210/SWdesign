@@ -13,16 +13,16 @@ import java.util.List;
  */
 public class CardMatchingMedium extends JFrame {
     private JPanel cardPanel;
-    private JPanel topPanel;  
-    private JLabel scoreLabel;  
+    private JPanel topPanel;
+    private JButton button;
+    private JLabel scoreLabel;
+    public Score score;
+    public static Level1Timer level1timer;
     private List<Card> cards;
-    private Card selectedCard = null;
     private int pairsFound = 0;
-    private Score cardScore;
-    private static final String initialImagePath = "cardlogo.jpg";
-    private static final int initialImageWidth = 129;
-    private static final int initialImageHeight = 172;
+    private Card selectedCard = null;
     private boolean isComparing = false;
+    private static final String initialImagePath = "src/image/cardlogo.jpg";
 
     /**
      * CardMatchingEasy 클래스의 생성자입니다.
@@ -32,49 +32,93 @@ public class CardMatchingMedium extends JFrame {
         setTitle("엎어라 뒤집어라");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setResizable(false);
-        cardScore = new Score();
-        topPanel = new JPanel(new FlowLayout());
-        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setMinimumSize(new Dimension(1400, 1100));
+        
+        score = new Score();
         scoreLabel = new JLabel("Score: 0");
-        topPanel.add(scoreLabel);
+        
+        topPanel = new JPanel(new GridBagLayout());
         topPanel.setBackground(new Color(125, 159, 104));
-        add(topPanel, BorderLayout.NORTH);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Add scoreLabel to the left side
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        topPanel.add(scoreLabel, gbc);
+
+        // Add some horizontal space between scoreLabel and the button
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        topPanel.add(Box.createHorizontalStrut(10), gbc);
+
+        // Add button to the right side
+        gbc.gridx = 2;
+        gbc.weightx = 0.0;
+        ImageIcon pauseIcon = new ImageIcon("src/image/pause.png");
+        button = new JButton(pauseIcon);
+        button.setPreferredSize(new Dimension(20, 20));
+        button.setBackground(new Color(125, 159, 104));
+        button.setBorderPainted(false);
+        topPanel.add(button, gbc);
+
+        // Add some vertical space between the button and the progress bar
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 3;
+        gbc.weighty = 1.0;
+        topPanel.add(Box.createVerticalStrut(10), gbc);
+
+        //타이머 추가
+        Level1Timer level1timer = new Level1Timer();
+        JProgressBar timerVisible = level1timer.getProgressBar();
+        topPanel.add(timerVisible);
+        
+        // Add the JProgressBar to the center
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 3;
+        gbc.weighty = 0.0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        topPanel.add(timerVisible, gbc);
 
         cardPanel = new JPanel(new GridLayout(5, 6, 10, 10));
         cardPanel.setBackground(new Color(237, 227, 206));
         cards = new ArrayList<>();
 
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int cardWidth = (int) (screenSize.getWidth()* 0.08);
+        int cardHeight = (int) (screenSize.getHeight()* 0.16);
+        
         for (int i = 0; i < 15; i++) {
-            String imagePath = "medium/medium" + (i + 1) + ".png";
-            ImageIcon icon = new ImageIcon(imagePath);
+            String imagePath = "src/image/medium/food" + (i + 1) + ".jpg";
+            ImageIcon cardIcon = new ImageIcon(imagePath);
 
             for (int j = 0; j < 2; j++) {
-                Card card = new Card(icon);
+                Card card = new Card(cardIcon, cardWidth, cardHeight);
                 card.addMouseListener(new CardClickListener());
                 cards.add(card);
             }
         }
 
         Collections.shuffle(cards);
-
+        initializeCardImages(cardWidth, cardHeight);
+        
         for (Card card : cards) {
             cardPanel.add(card);
         }
-
-        initializeCardImages();
-
+        
         JPanel centerPanel = new JPanel(new FlowLayout());
+        centerPanel.setBackground(new Color(237, 227, 206));
         centerPanel.add(cardPanel);
-
+        
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         
         add(mainPanel);
-        pack(); // 내용에 딱맞게 화면 조정
-        setLocationRelativeTo(null); //화면 센터로 고정
         setVisible(true);
     }
     
@@ -82,16 +126,15 @@ public class CardMatchingMedium extends JFrame {
      * 게임의 모든 카드에 대한 이미지를 초기화합니다.
      * 각 카드의 기본 이미지 아이콘을 초기 이미지의 크기에 맞게 조절합니다.
      */
-    private void initializeCardImages() {
+    private void initializeCardImages(int cardWidth, int cardHeight) {
         ImageIcon defaultIcon = new ImageIcon(initialImagePath);
-        Image img = defaultIcon.getImage().getScaledInstance(initialImageWidth, initialImageHeight, Image.SCALE_SMOOTH);
+        Image img = defaultIcon.getImage().getScaledInstance(cardWidth, cardHeight, Image.SCALE_SMOOTH);
         defaultIcon = new ImageIcon(img);
-        
+
         for (Card card : cards) {
             card.setIcon(defaultIcon);
         }
     }
-
     /**
      * Card 클래스는 게임에서 사용되는 카드를 나타냅니다.
      * 각 카드에는 연관된 이미지 아이콘이 있으며 앞면이나 뒷면으로 나타낼 수 있습니다.
@@ -105,10 +148,10 @@ public class CardMatchingMedium extends JFrame {
          *
          * @param icon 카드와 연관된 이미지 아이콘입니다.
          */
-        public Card(ImageIcon icon) {
+        public Card(ImageIcon icon, int width, int height) {
             this.icon = icon;
-            setPreferredSize(new Dimension(initialImageWidth, initialImageHeight));
-            setIcon(icon);
+            setPreferredSize(new Dimension(width, height));
+            setIcon(scaleIcon(icon, getPreferredSize()));
         }
 
         /**
@@ -135,7 +178,7 @@ public class CardMatchingMedium extends JFrame {
          * @param size 조절된 이미지의 크기를 나타내는 Dimension 객체입니다.
          * @return 지정된 크기로 조절된 이미지 아이콘을 나타내는 ImageIcon 객체입니다.
          */
-        private ImageIcon scaleIcon(ImageIcon originalIcon, Dimension size) {
+        public ImageIcon scaleIcon(ImageIcon originalIcon, Dimension size) {
             Image image = originalIcon.getImage();
             Image scaledImage = image.getScaledInstance(size.width, size.height, Image.SCALE_SMOOTH);
             return new ImageIcon(scaledImage);
@@ -161,16 +204,17 @@ public class CardMatchingMedium extends JFrame {
                 selectedCard = clickedCard;
             } else {
                 isComparing = true;
-
                 Timer cardTimer = new Timer(40, new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if (selectedCard.icon.equals(clickedCard.icon)) {
-                            cardScore.increaseScore(2);
-                            scoreLabel.setText("Score: " + cardScore.getScore());
+                            score.increaseScore(2);
+                            scoreLabel.setText("Score: " + score.getScore());
                             pairsFound++;
                             if (pairsFound == 15) {
-                                JOptionPane.showMessageDialog(null, "You win!");
+//                            	score.timerScore = level1timer.getTimerValue(); // 타이머 점수 저장해서 최종 점수에 더해져야함
+                            	// 타이머 끝나면 게임 끝나거나 게임 끝나면 타이머 끝나야함
+                            	JOptionPane.showMessageDialog(null, "You win");
                             }
                             selectedCard.setEnabled(false);
                             clickedCard.setEnabled(false);
@@ -200,7 +244,7 @@ public class CardMatchingMedium extends JFrame {
     	 * @param size 조절된 이미지의 크기를 나타내는 Dimension 객체입니다.
     	 * @return 지정된 크기로 조절된 이미지 아이콘을 나타내는 ImageIcon 객체입니다.
     	 */
-        private ImageIcon scaleIcon(ImageIcon originalIcon, Dimension size) {
+        public ImageIcon scaleIcon(ImageIcon originalIcon, Dimension size) {
             Image image = originalIcon.getImage();
             Image scaledImage = image.getScaledInstance(size.width, size.height, Image.SCALE_SMOOTH);
             return new ImageIcon(scaledImage);
