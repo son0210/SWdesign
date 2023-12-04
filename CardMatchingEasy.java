@@ -12,19 +12,29 @@ import java.util.List;
  * JFrame을 확장하며 게임의 그래픽 사용자 인터페이스(GUI)를 포함합니다.
  */
 public class CardMatchingEasy extends JPanel {
+    /** 카드를 CardLayout으로 보유하는 패널입니다. */
     private JPanel cardPanel;
+    /** 상단 인터페이스 요소를 포함하는 패널입니다. */
     private JPanel topPanel;
+    /** 일시정지 동작에 사용되는 버튼입니다. */
     private JButton button;
+    /** 현재 점수를 표시하는 레이블입니다. */
     private JLabel scoreLabel;
+    /** 게임 점수를 나타내는 객체입니다. */
     public Score score;
+    /** 나이도 별로 게임 시간을 제어하는 타이머 객체입니다. */
     public Level1Timer level1timer;
-    public DataManager data;
+    /** 게임에 사용되는 카드 목록입니다. */
     private List<Card> cards;
+    /** 플레이어가 앚은 카드 쌍의 수 입니다. */
     private int pairsFound = 0;
+    /** 현재 선택된 비교 대상 카드입니다. */
     private Card selectedCard = null;
+    /** 현재 카드를 비교 중인지 여부를 나타냅니다. */
     private boolean isComparing = false;
+    /** 카드에 사용되는 초기 이미지의 경로입니다. */
     private static final String initialImagePath = "src/image/cardlogo.jpg";
-
+    
     protected MainPage mainPage;
     private CardLayout cardLayout;
     private JPanel panel;
@@ -37,7 +47,6 @@ public class CardMatchingEasy extends JPanel {
      * @param layout     카드 레이아웃
      * @param panel      전환될 패널
      * @param mainPage   메인 페이지
-     * @param data       데이터 배열
      */
     public CardMatchingEasy(CardLayout layout, JPanel panel, MainPage mainPage, String[] data) {
         cardLayout = layout;
@@ -128,7 +137,7 @@ public class CardMatchingEasy extends JPanel {
         Collections.shuffle(cards);
         initializeCardImages(cardWidth, cardHeight);
         
-        // 카드를 패널에 카드 추가
+        // 카드를 패널에 추가
         for (Card card : cards) {
             cardPanel.add(card);
         }
@@ -316,10 +325,10 @@ public class CardMatchingEasy extends JPanel {
         // 새로운 패널 생성
         FinishPage finishPanel = new FinishPage(layout, panel, mainPage, finalscore);
         
-//        // 기존의 최고점수와 비교하기 위한 변수 생성
-//        DataManager data = new DataManager();
-//        int finalScore = finalscore;
-//        data.saveScore(finalScore);
+//      // 기존의 최고점수와 비교하기 위한 변수 생성
+//      DataManager data = new DataManager();
+//      int finalScore = finalscore;
+//      data.saveScore(finalScore);
         
         // 기존 패널에 새로운 패널 추가
         panel.add(finishPanel.getFinishPanel(), "finishPanel");
